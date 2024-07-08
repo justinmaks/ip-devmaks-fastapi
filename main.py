@@ -8,10 +8,14 @@ import time
 
 app = FastAPI()
 
+# Set up logging configuration
 logging.basicConfig(
-    filename='app.log',
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("app.log"),
+        logging.StreamHandler()
+    ]
 )
 
 class IPResponse:
@@ -86,4 +90,4 @@ async def read_root_head(request: Request):
     return JSONResponse(content=None, status_code=200)
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=9005)
+    uvicorn.run(app, host="0.0.0.0", port=9005, log_level="info")
