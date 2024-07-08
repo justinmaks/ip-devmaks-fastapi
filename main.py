@@ -81,5 +81,9 @@ async def read_root(request: Request):
 
     return JSONResponse(content=response.__dict__)
 
+@app.head("/")
+async def read_root_head(request: Request):
+    return JSONResponse(content=None, status_code=200)
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=9005)
