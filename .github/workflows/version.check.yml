@@ -1,0 +1,53 @@
+name: Check Version Increment
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  version-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install semver
+
+      - name: Get current VERSION
+        id: get_current_version
+        run: echo "CURRENT_VERSION=$(cat VERSION)" >> $GITHUB_ENV
+
+      - name: Get previous VERSION from main branch
+        run: |
+          git fetch origin main
+          PREVIOUS_VERSION=$(git show origin/main:VERSION)
+          echo "PREVIOUS_VERSION=$PREVIOUS_VERSION" >> $GITHUB_ENV
+
+      - name: Compare versions
+        run: |
+          python -c "
+          import os
+          import semver
+
+          current_version = os.getenv('CURRENT_VERSION')
+          previous_version = os.getenv('PREVIOUS_VERSION')
+
+          if not semver.VersionInfo.is_valid(current_version):
+              raise ValueError(f'Invalid current version: {current_version}')
+          if not semver.VersionInfo.is_valid(previous_version):
+              raise ValueError(f'Invalid previous version: {previous_version}')
+
+          current_version_info = semver.VersionInfo.parse(current_version)
+          previous_version_info = semver.VersionInfo.parse(previous_version)
+
+          if current_version_info <= previous_version_info:
+              raise ValueError(f'Current version ({current_version}) is not greater than previous version ({previous_version})')
+          "
