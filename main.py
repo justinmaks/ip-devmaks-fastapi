@@ -4,6 +4,7 @@ import uvicorn
 import logging
 from typing import Union
 import ipaddress
+import time
 
 app = FastAPI()
 
@@ -49,10 +50,16 @@ def get_specific_ip(request: Request, ip_type: str) -> Union[str, None]:
 
     return None
 
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    logging.info(f"Handled request in {process_time} seconds")
+    return response
+
 @app.get("/")
 async def read_root(request: Request):
-    start_time = request.state._start_time
-
     ip_type_header = request.headers.get("ip_type")
     ip = get_specific_ip(request, ip_type_header) if ip_type_header in ["ipv4", "ipv6"] else get_ip(request)
 
@@ -64,8 +71,6 @@ async def read_root(request: Request):
     response = IPResponse(ip=ip, ip_type=ip_type)
 
     logging.info(f"Request from IP: {ip} ({ip_type})")
-    elapsed_time = time.time() - start_time
-    logging.info(f"Handled request in {elapsed_time} seconds")
 
     return JSONResponse(content=response.__dict__)
 
