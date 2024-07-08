@@ -2,6 +2,8 @@
 
 This is a FastAPI application that retrieves and returns the IP address information of the requester. The application logs request details and the time taken to handle each request.
 
+https://ip.devmaks.biz/
+
 ## Features
 
 - Extracts the client's IP address from HTTP headers or the request object.
